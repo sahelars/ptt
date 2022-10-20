@@ -1,10 +1,10 @@
 {
   "name": "ptt",
   "license": "GPL-3.0-only",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Physically Transferrable Tokens (PTT)",
   "scripts": {
-    "lint": "prettier --write **"
+    "lint": "prettier --write **.{js,sol,json} **/*.{js,sol,json} **/**/*.{js,sol,json}"
   },
   "devDependencies": {
     "@0xver/solver": "^2.0.2",
