@@ -22,6 +22,7 @@ contract PTT is IPTT {
         balanceOf[msg.sender] = _currentTokenId;
         ownerOf[_currentTokenId] = msg.sender;
         _setTokenRoot(_currentTokenId, _root);
+        emit Transfer(address(0), msg.sender, _currentTokenId);
     }
 
     function isApprovedForTransfer(
