@@ -9,8 +9,10 @@ import "@0xver/solver/library/Merkle.sol";
 /// @dev This is a non-optimized implementation
 contract PTT is IPTT {
     mapping(uint256 => address) public override(IPTT) ownerOf;
-    mapping(uint256 => address) public override(IPTT) initialized;
-    mapping(uint256 => mapping(address => uint256)) public override(IPTT) offer;
+    mapping(uint256 => address) public override(IPTT) initializer;
+    mapping(address => mapping(uint256 => uint256))
+        public
+        override(IPTT) initializerTokenOffer;
     mapping(uint256 => mapping(bytes32 => uint256)) private _processedMap;
     mapping(uint256 => uint256) private _lastProcessed;
     mapping(uint256 => bytes32) private _tokenRootMap;
@@ -35,36 +37,46 @@ contract PTT is IPTT {
         return Merkle.verify(_proof, _tokenRoot(_tokenId), leaf);
     }
 
-    function initializeTransaction(uint256 _tokenId) public payable {
-        require(initialized[_tokenId] == address(0));
-        offer[_tokenId][msg.sender] = msg.value;
-        emit Initialize(ownerOf[_tokenId], msg.sender, _tokenId, msg.value);
+    function initializeOffer(uint256 _tokenId) public payable override(IPTT) {
+        require(initializer[_tokenId] == address(0));
+        initializerTokenOffer[msg.sender][_tokenId] = msg.value;
+        emit InitializeOffer(
+            ownerOf[_tokenId],
+            msg.sender,
+            _tokenId,
+            msg.value
+        );
     }
 
-    function revertTransaction(uint256 _tokenId) public {
-        require(initialized[_tokenId] == address(0));
-        uint256 amount = offer[_tokenId][msg.sender];
-        delete offer[_tokenId][msg.sender];
+    function revertOffer(uint256 _tokenId) public override(IPTT) {
+        require(initializer[_tokenId] == address(0));
+        uint256 amount = initializerTokenOffer[msg.sender][_tokenId];
+        delete initializerTokenOffer[msg.sender][_tokenId];
         (bool success, ) = payable(msg.sender).call{value: amount}("");
         require(success, "ETHER_TRANSFER_FAILED");
-        emit Revert(ownerOf[_tokenId], msg.sender, _tokenId, amount);
+        emit RevertOffer(ownerOf[_tokenId], msg.sender, _tokenId, amount);
     }
 
-    function acceptTransaction(
+    function acceptOffer(
         address _from,
         address _to,
         uint256 _tokenId,
         string memory _code,
         bytes32[] calldata _proof
-    ) public {
+    ) public override(IPTT) {
         require(
-            initialized[_tokenId] == address(0) &&
+            initializer[_tokenId] == address(0) &&
                 _from == ownerOf[_tokenId] &&
                 isValidTransferCode(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
-        initialized[_tokenId] = _to;
-        emit Accept(ownerOf[_tokenId], _to, _tokenId, offer[_tokenId][_to]);
+        initializer[_tokenId] = _to;
+        emit AcceptOffer(
+            ownerOf[_tokenId],
+            _to,
+            _tokenId,
+            initializerTokenOffer[_to][_tokenId]
+        );
     }
 
     function transfer(
@@ -73,16 +85,16 @@ contract PTT is IPTT {
         uint256 _tokenId,
         string memory _code,
         bytes32[] calldata _proof
-    ) public {
+    ) public override(IPTT) {
         require(
             _from == ownerOf[_tokenId] &&
-                _to == initialized[_tokenId] &&
+                _to == initializer[_tokenId] &&
                 isValidTransferCode(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
         ownerOf[_tokenId] = _to;
-        delete initialized[_tokenId];
-        uint256 amount = offer[_tokenId][_to];
+        delete initializer[_tokenId];
+        uint256 amount = initializerTokenOffer[_to][_tokenId];
         (bool success, ) = payable(_from).call{value: amount}("");
         require(success, "ETHER_TRANSFER_FAILED");
         emit Transfer(_from, _to, _tokenId);

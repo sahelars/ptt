@@ -5,11 +5,12 @@ pragma solidity ^0.8.4;
 /// @title Physically Transferrable Tokens (PTT)
 interface IPTT {
     /// @notice Emits when receiving address sends payment for transaction
+    /// @dev Implemented with initializeOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
-    event Initialize(
+    event InitializeOffer(
         address indexed _from,
         address indexed _to,
         uint256 indexed _tokenId,
@@ -17,11 +18,12 @@ interface IPTT {
     );
 
     /// @notice Emits when receiving address reverts transaction
+    /// @dev Implemented with revertOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
-    event Revert(
+    event RevertOffer(
         address indexed _from,
         address indexed _to,
         uint256 indexed _tokenId,
@@ -29,11 +31,12 @@ interface IPTT {
     );
 
     /// @notice Emits when owner accepts offer and gives initializer PTT
+    /// @dev Implemented with acceptOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
-    event Accept(
+    event AcceptOffer(
         address indexed _from,
         address indexed _to,
         uint256 indexed _tokenId,
@@ -41,7 +44,7 @@ interface IPTT {
     );
 
     /// @notice Emits when initializer confirms their transfer
-    /// @dev Compatible with ERC-721
+    /// @dev Compatible with ERC-721 and implemented with transfer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
     /// @param _tokenId The token ID for the offer
@@ -50,6 +53,46 @@ interface IPTT {
         address indexed _to,
         uint256 indexed _tokenId
     );
+
+    /// @notice Initialize a token offer to transfer to the sender
+    /// @dev Should emit InitializeOffer event
+    /// @param _tokenId The token ID to offer ETH for
+    function initializeOffer(uint256 _tokenId) external payable;
+
+    /// @notice Revert a token offer
+    /// @dev Should emit RevertOffer event
+    /// @param _tokenId The token ID to revert offer for
+    function revertOffer(uint256 _tokenId) external;
+
+    /// @notice Accept a token offer but does not send payment
+    /// @dev Emit AcceptOffer event and prevent revertOffer
+    /// @param _from The address that owners the token
+    /// @param _to The address who will receive the token
+    /// @param _tokenId The token ID to accept offer for
+    /// @param _code An indexed code from the merkle tree database
+    /// @param _proof The proof for the code
+    function acceptOffer(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        string memory _code,
+        bytes32[] calldata _proof
+    ) external;
+
+    /// @notice Transfers the sends ETH to the _from address
+    /// @dev Compatible with ERC-721 and emit Transfer event
+    /// @param _from The address that owners the token
+    /// @param _to The address who will receive the token
+    /// @param _tokenId The token ID to transfer
+    /// @param _code An indexed code from the merkle tree database
+    /// @param _proof The proof for the code
+    function transfer(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        string memory _code,
+        bytes32[] calldata _proof
+    ) external;
 
     /// @notice Returns true if the transfer code is valid
     /// @param _tokenId The token ID for the transfer code
@@ -68,12 +111,12 @@ interface IPTT {
 
     /// @notice Initalized receiver for after Accept is emitted
     /// @param _tokenId The token ID for the initializer
-    function initialized(uint256 _tokenId) external view returns (address);
+    function initializer(uint256 _tokenId) external view returns (address);
 
     /// @notice The offer amount for a token ID from an initializer
     /// @param _tokenId The token ID for the initializer
     /// @param _initializer The initializer of the offer
-    function offer(uint256 _tokenId, address _initializer)
+    function initializerTokenOffer(address _initializer, uint256 _tokenId)
         external
         view
         returns (uint256);

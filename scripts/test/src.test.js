@@ -30,14 +30,14 @@ describe(`${contract} contract test`, function () {
     const Token = await deployer(contract, addrs[0]);
     await Token.connect(addrs[0]).mint(merkle(database)[1]);
     expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
-    await Token.connect(addrs[1]).initializeTransaction(1, {
+    await Token.connect(addrs[1]).initializeOffer(1, {
       value: String(21000),
     });
     expect(
       await Token.isValidTransferCode(1, "1", proof(database, "1"))
     ).to.equal(true);
     expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
-    await Token.connect(addrs[0]).acceptTransaction(
+    await Token.connect(addrs[0]).acceptOffer(
       addrs[0].address,
       addrs[1].address,
       1,
