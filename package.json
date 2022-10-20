@@ -1,0 +1,18 @@
+{
+  "name": "ptt",
+  "license": "GPL-3.0-only",
+  "version": "1.0.0",
+  "description": "Physically Transferrable Tokens (PTT)",
+  "scripts": {
+    "lint": "prettier --write **"
+  },
+  "devDependencies": {
+    "@0xver/solver": "^2.0.2",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "hardhat": "^2.12.0",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.2.32",
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.24"
+  }
+}
