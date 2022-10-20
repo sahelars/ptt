@@ -55,7 +55,7 @@ interface IPTT {
     /// @param _tokenId The token ID for the transfer code
     /// @param _code The code used to transfer the token
     /// @param _proof The merkle proof for the code
-    function isApprovedForTransfer(
+    function isValidTransferCode(
         uint256 _tokenId,
         string memory _code,
         bytes32[] calldata _proof

@@ -25,17 +25,16 @@ contract PTT is IPTT {
         emit Transfer(address(0), msg.sender, _currentTokenId);
     }
 
-    function isApprovedForTransfer(
+    function isValidTransferCode(
         uint256 _tokenId,
         string memory _code,
         bytes32[] calldata _proof
     ) public view override(IPTT) returns (bool) {
         if (Strings.numbify(_code) <= _lastProcessed[_tokenId]) {
             return false;
-        } else {
-            bytes32 leaf = keccak256(abi.encodePacked(_code));
-            return Merkle.verify(_proof, _tokenRoot(_tokenId), leaf);
         }
+        bytes32 leaf = keccak256(abi.encodePacked(_code));
+        return Merkle.verify(_proof, _tokenRoot(_tokenId), leaf);
     }
 
     function initializeTransaction(uint256 _tokenId) public payable {
@@ -63,7 +62,7 @@ contract PTT is IPTT {
         require(
             initialized[_tokenId] == address(0) &&
                 _from == ownerOf[_tokenId] &&
-                isApprovedForTransfer(_tokenId, _code, _proof)
+                isValidTransferCode(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
         initialized[_tokenId] = _to;
@@ -80,7 +79,7 @@ contract PTT is IPTT {
         require(
             _from == ownerOf[_tokenId] &&
                 _to == initialized[_tokenId] &&
-                isApprovedForTransfer(_tokenId, _code, _proof)
+                isValidTransferCode(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
         unchecked {
