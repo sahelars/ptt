@@ -26,7 +26,7 @@ function proof(database, code) {
 
 describe(`${contract} contract test`, function () {
   it("Passed", async function () {
-    const addrs = await signers(10);
+    const addrs = await signers(2);
     const Token = await deployer(contract, addrs[0]);
     await Token.connect(addrs[0]).mint(merkle(database)[1]);
     expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
@@ -58,6 +58,9 @@ describe(`${contract} contract test`, function () {
       "2",
       proof(database, "2")
     );
+    expect(
+      await Token.isApprovedForTransfer(1, "2", proof(database, "2"))
+    ).to.equal(false);
     expect(await Token.ownerOf(1)).to.equal(addrs[1].address);
   });
 });
