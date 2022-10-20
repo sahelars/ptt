@@ -30,7 +30,7 @@ contract PTT is IPTT {
         string memory _code,
         bytes32[] calldata _proof
     ) public view override(IPTT) returns (bool) {
-        if (Strings.stringify(_code) <= _lastProcessed[_tokenId]) {
+        if (Strings.numbify(_code) <= _lastProcessed[_tokenId]) {
             return false;
         } else {
             bytes32 leaf = keccak256(abi.encodePacked(_code));
@@ -112,14 +112,14 @@ contract PTT is IPTT {
             Merkle.verify(_proof, _tokenRoot(_tokenId), leaf),
             "INVALID_PROOF"
         );
-        uint128 num = uint128(Strings.stringify(_code));
+        uint128 num = uint128(Strings.numbify(_code));
         _processedMap[_tokenId][leaf] = num;
         _lastProcessed[_tokenId] = num;
     }
 }
 
 library Strings {
-    function stringify(string memory _string)
+    function numbify(string memory _string)
         internal
         pure
         returns (uint256 number)
