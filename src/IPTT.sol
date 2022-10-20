@@ -61,11 +61,6 @@ interface IPTT {
         bytes32[] calldata _proof
     ) external view returns (bool);
 
-    /// @notice The balance of a token owner
-    /// @dev Compatible with ERC-721
-    /// @param _owner The owner address of the token
-    function balanceOf(address _owner) external view returns (uint256);
-
     /// @notice The owner of a token
     /// @dev Compatible with ERC-721
     /// @param _tokenId The owner token ID

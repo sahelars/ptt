@@ -8,7 +8,6 @@ import "@0xver/solver/library/Merkle.sol";
 /// @title Physically Transferrable Token (PTT) implementation
 /// @dev This is a non-optimized implementation
 contract PTT is IPTT {
-    mapping(address => uint256) public override(IPTT) balanceOf;
     mapping(uint256 => address) public override(IPTT) ownerOf;
     mapping(uint256 => address) public override(IPTT) initialized;
     mapping(uint256 => mapping(address => uint256)) public override(IPTT) offer;
@@ -19,7 +18,6 @@ contract PTT is IPTT {
 
     function mint(bytes32 _root) public {
         _currentTokenId += 1;
-        balanceOf[msg.sender] = _currentTokenId;
         ownerOf[_currentTokenId] = msg.sender;
         _setTokenRoot(_currentTokenId, _root);
         emit Transfer(address(0), msg.sender, _currentTokenId);
@@ -82,10 +80,6 @@ contract PTT is IPTT {
                 isValidTransferCode(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
-        unchecked {
-            balanceOf[_from] -= 1;
-            balanceOf[_to] += 1;
-        }
         ownerOf[_tokenId] = _to;
         delete initialized[_tokenId];
         uint256 amount = offer[_tokenId][_to];
