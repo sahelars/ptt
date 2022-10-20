@@ -61,7 +61,8 @@ contract PTT is IPTT {
         bytes32[] calldata _proof
     ) public {
         require(
-            _from == ownerOf[_tokenId] &&
+            initialized[_tokenId] == address(0) &&
+                _from == ownerOf[_tokenId] &&
                 isApprovedForTransfer(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
