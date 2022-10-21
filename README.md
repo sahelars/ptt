@@ -1,7 +1,7 @@
 ---
 eip: <to be assigned>
 title: Physically Transferrable Token
-description: Interface for linking Ethereum accounts to physical items and escrow for their exchange
+description: Interface for using physical chips to control tokens and provide escrow for their exchange
 author: Sam Larsen (sam@slarsen.io)
 discussions-to: CryptoDevs (Discord)
 status: Idea
@@ -13,7 +13,7 @@ requires: 165
 
 ## Abstract
 
-This standard proposes an interface for exchanging physical items for ETH through an escrow service. The non-fungible tokens may only be transferred using a physical device that can generate transfer codes without an internet connection.
+This standard proposes an interface for exchanging physical items for ETH through an escrow service. The non-fungible tokens must only be transferred using a physical device that can generate transfer codes without an internet connection.
 
 ## Motivation
 
