@@ -2,7 +2,7 @@
 eip: <to be assigned>
 title: Physically Transferrable Token
 description: Interface for linking ownership to physical items and escrow for their exchange
-author: Sam Larsen
+author: Sam Larsen (sam@slarsen.io)
 discussions-to: CryptoDevs (Discord)
 status: Draft
 type: Standards Track
