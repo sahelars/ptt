@@ -23,7 +23,7 @@ This proposal is motivated to add blockchain transparency and utility to physica
 
 The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL NOT”, “SHOULD”, “SHOULD NOT”, “RECOMMENDED”, “MAY”, and “OPTIONAL” in this document are to be interpreted as described in RFC 2119.
 
-Each NFT must be operated by a physical chip, preferrably an NFC chip. The physical chip must contain a merkle tree database that must chronologically release codes and the codes must increase in size. The escrow system must ensure old codes cannot be used after the new owner is stored.
+Each NFT must be operated by a physical chip, preferrably an NFC chip. The physical chip should contain a merkle tree database that must chronologically release codes that increase in size. The escrow system must ensure old codes cannot be used after the new owner is stored.
 
 **Every ERC-???? compliant contract must implement the `ERC` and `ERC165` interfaces (subject to "caveats" below):**
 
