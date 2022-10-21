@@ -17,7 +17,7 @@ This standard proposes an interface for exchanging physical items for ETH throug
 
 ## Motivation
 
-While it is reasonabe to exchange physical items for cryptocurrency, there are perks for having the physical items tied to an escrow service directly, in the event of their exchange. An example of this could be the sale of smart vehicles or smart homes, which also can create better transparency around their history.
+This proposal is motivated to add blockchain transparency and utility to physical items and include an escrow service for their exchange. An example of this could be the sale of smart vehicles or smart homes.
 
 ## Specification
 
