@@ -4,10 +4,11 @@ pragma solidity ^0.8.4;
 
 import "./IPTT.sol";
 import "@0xver/solver/library/Merkle.sol";
+import "@0xver/solver/interface/IERC165.sol";
 
 /// @title Physically Transferrable Token (PTT) implementation
 /// @dev This is a non-optimized implementation
-contract PTT is IPTT {
+contract PTT is IPTT, IERC165 {
     mapping(uint256 => address) public override(IPTT) ownerOf;
     mapping(uint256 => address) public override(IPTT) initializer;
     mapping(address => mapping(uint256 => uint256))
@@ -98,6 +99,18 @@ contract PTT is IPTT {
         (bool success, ) = payable(_from).call{value: amount}("");
         require(success, "ETHER_TRANSFER_FAILED");
         emit Transfer(_from, _to, _tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        pure
+        virtual
+        override(IERC165)
+        returns (bool)
+    {
+        return
+            interfaceId == type(IERC165).interfaceId ||
+            interfaceId == type(IPTT).interfaceId;
     }
 
     function _setTokenRoot(uint256 _tokenId, bytes32 _root) internal {
