@@ -4,7 +4,7 @@ title: Physically Transferrable Token
 description: Interface for linking ownership to physical items and escrow for their exchange
 author: Sam Larsen (sam@slarsen.io)
 discussions-to: CryptoDevs (Discord)
-status: Draft
+status: Idea
 type: Standards Track
 category: ERC
 created: 2022-10-20
