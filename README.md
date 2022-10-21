@@ -319,7 +319,7 @@ library Strings {
 
 ## Security Considerations
 
-The escrow system should ensure old codes can't be used by previous owners. This can be done by increasing the size of the codes and checking that each code is larger than the previous.
+The escrow system should ensure old codes can't be used by previous owners. This can be done by increasing the size of the codes and checking that each code is larger than the previous. After an offer is accepted via `acceptOffer` it should also be implemented so `revertOffer` cannot occur after that point.
 
 ## Copyright
 
