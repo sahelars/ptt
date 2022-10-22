@@ -10,7 +10,7 @@ import "@0xver/solver/interface/IERC165.sol";
 /// @dev This is a non-optimized implementation
 contract PTT is IPTT, IERC165 {
     mapping(uint256 => address) public override(IPTT) ownerOf;
-    mapping(uint256 => address) public override(IPTT) initializer;
+    mapping(uint256 => address) public override(IPTT) transferee;
     mapping(address => mapping(uint256 => uint256))
         public
         override(IPTT) initializerTokenOffer;
@@ -41,7 +41,7 @@ contract PTT is IPTT, IERC165 {
     }
 
     function initializeOffer(uint256 _tokenId) public payable override(IPTT) {
-        require(initializer[_tokenId] == address(0));
+        require(transferee[_tokenId] == address(0));
         initializerTokenOffer[msg.sender][_tokenId] = msg.value;
         emit InitializeOffer(
             ownerOf[_tokenId],
@@ -52,7 +52,7 @@ contract PTT is IPTT, IERC165 {
     }
 
     function revertOffer(uint256 _tokenId) public override(IPTT) {
-        require(initializer[_tokenId] == address(0));
+        require(transferee[_tokenId] == address(0));
         uint256 amount = initializerTokenOffer[msg.sender][_tokenId];
         delete initializerTokenOffer[msg.sender][_tokenId];
         (bool success, ) = payable(msg.sender).call{value: amount}("");
@@ -68,12 +68,12 @@ contract PTT is IPTT, IERC165 {
         bytes32[] calldata _proof
     ) public override(IPTT) {
         require(
-            initializer[_tokenId] == address(0) &&
+            transferee[_tokenId] == address(0) &&
                 _from == ownerOf[_tokenId] &&
                 isValidTransferCode(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
-        initializer[_tokenId] = _to;
+        transferee[_tokenId] = _to;
         acceptOfferTimestamp[_to][_tokenId] = block.timestamp;
         emit AcceptOffer(
             ownerOf[_tokenId],
@@ -88,12 +88,12 @@ contract PTT is IPTT, IERC165 {
         override(IPTT)
     {
         require(
-            initializer[_tokenId] != address(0) &&
+            transferee[_tokenId] != address(0) &&
                 (acceptOfferTimestamp[_initializer][_tokenId] + 60000) <
                 block.timestamp &&
                 ownerOf[_tokenId] == msg.sender
         );
-        delete initializer[_tokenId];
+        delete transferee[_tokenId];
         uint256 amount = initializerTokenOffer[_initializer][_tokenId];
         delete initializerTokenOffer[_initializer][_tokenId];
         (bool success, ) = payable(_initializer).call{value: amount}("");
@@ -110,12 +110,12 @@ contract PTT is IPTT, IERC165 {
     ) public override(IPTT) {
         require(
             _from == ownerOf[_tokenId] &&
-                _to == initializer[_tokenId] &&
+                _to == transferee[_tokenId] &&
                 isValidTransferCode(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
         ownerOf[_tokenId] = _to;
-        delete initializer[_tokenId];
+        delete transferee[_tokenId];
         uint256 amount = initializerTokenOffer[_to][_tokenId];
         delete initializerTokenOffer[_to][_tokenId];
         (bool success, ) = payable(_from).call{value: amount}("");

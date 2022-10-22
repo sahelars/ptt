@@ -129,9 +129,9 @@ interface IPTT {
     function ownerOf(uint256 _tokenId) external view returns (address);
 
     /// @notice Initalized receiver for after Accept is emitted
-    /// @dev The initializer should be set after the offer is accepted
+    /// @dev The transferee is initializer after offer is accepted
     /// @param _tokenId The token ID for the initializer
-    function initializer(uint256 _tokenId) external view returns (address);
+    function transferee(uint256 _tokenId) external view returns (address);
 
     /// @notice The offer amount for a token ID from an initializer
     /// @param _tokenId The token ID for the initializer
