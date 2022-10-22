@@ -40,6 +40,18 @@ describe(`${contract} contract test`, function () {
     await Token.connect(addrs[0]).acceptOffer(
       addrs[0].address,
       addrs[1].address,
+      1
+    );
+    expect(
+      await Token.isValidTransferCode(1, "1", proof(database, "1"))
+    ).to.equal(true);
+    expect(
+      await Token.isValidTransferCode(1, "2", proof(database, "2"))
+    ).to.equal(true);
+    expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
+    await Token.connect(addrs[1]).transfer(
+      addrs[0].address,
+      addrs[1].address,
       1,
       "1",
       proof(database, "1")
@@ -50,17 +62,6 @@ describe(`${contract} contract test`, function () {
     expect(
       await Token.isValidTransferCode(1, "2", proof(database, "2"))
     ).to.equal(true);
-    expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
-    await Token.connect(addrs[1]).transfer(
-      addrs[0].address,
-      addrs[1].address,
-      1,
-      "2",
-      proof(database, "2")
-    );
-    expect(
-      await Token.isValidTransferCode(1, "2", proof(database, "2"))
-    ).to.equal(false);
     expect(await Token.ownerOf(1)).to.equal(addrs[1].address);
   });
 });

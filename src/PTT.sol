@@ -63,16 +63,11 @@ contract PTT is IPTT, IERC165 {
     function acceptOffer(
         address _from,
         address _to,
-        uint256 _tokenId,
-        string memory _code,
-        bytes32[] calldata _proof
+        uint256 _tokenId
     ) public override(IPTT) {
         require(
-            transferee[_tokenId] == address(0) &&
-                _from == ownerOf[_tokenId] &&
-                isValidTransferCode(_tokenId, _code, _proof)
+            transferee[_tokenId] == address(0) && _from == ownerOf[_tokenId]
         );
-        _processLeaf(_tokenId, _code, _proof);
         transferee[_tokenId] = _to;
         acceptOfferTimestamp[_to][_tokenId] = block.timestamp;
         emit AcceptOffer(
