@@ -107,14 +107,10 @@ interface IPTT {
     /// @param _from The address that owners the token
     /// @param _to The address who will receive the token
     /// @param _tokenId The token ID to accept offer for
-    /// @param _code An indexed code from the merkle tree database
-    /// @param _proof The proof for the code
     function acceptOffer(
         address _from,
         address _to,
-        uint256 _tokenId,
-        string memory _code,
-        bytes32[] calldata _proof
+        uint256 _tokenId
     ) external;
 
     /// @notice Refund a token offer
@@ -256,16 +252,11 @@ contract PTT is IPTT, IERC165 {
     function acceptOffer(
         address _from,
         address _to,
-        uint256 _tokenId,
-        string memory _code,
-        bytes32[] calldata _proof
+        uint256 _tokenId
     ) public override(IPTT) {
         require(
-            transferee[_tokenId] == address(0) &&
-                _from == ownerOf[_tokenId] &&
-                isValidTransferCode(_tokenId, _code, _proof)
+            transferee[_tokenId] == address(0) && _from == ownerOf[_tokenId]
         );
-        _processLeaf(_tokenId, _code, _proof);
         transferee[_tokenId] = _to;
         acceptOfferTimestamp[_to][_tokenId] = block.timestamp;
         emit AcceptOffer(
