@@ -69,6 +69,7 @@ interface IPTT {
 
     /// @notice Initialize a token offer to transfer to the sender
     /// @dev MUST emit InitializeOffer event
+    /// @param _initializer The potential transferee of the offer
     /// @param _tokenId The token ID to offer ETH for
     function initializeOffer(address _initializer, uint256 _tokenId)
         external
@@ -132,8 +133,8 @@ interface IPTT {
     function transferee(uint256 _tokenId) external view returns (address);
 
     /// @notice The offer amount for a token ID from an initializer
-    /// @param _tokenId The token ID for the initializer
     /// @param _initializer The initializer of the offer
+    /// @param _tokenId The token ID for the initializer
     function initializerTokenOffer(address _initializer, uint256 _tokenId)
         external
         view
