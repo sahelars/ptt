@@ -30,7 +30,7 @@ describe(`${contract} contract test`, function () {
     const Token = await deployer(contract, addrs[0]);
     await Token.connect(addrs[0]).mint(merkle(database)[1]);
     expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
-    await Token.connect(addrs[1]).initializeOffer(1, {
+    await Token.connect(addrs[1]).initializeOffer(addrs[1].address, 1, {
       value: String(21000),
     });
     expect(

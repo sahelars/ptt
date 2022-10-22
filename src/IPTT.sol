@@ -70,7 +70,9 @@ interface IPTT {
     /// @notice Initialize a token offer to transfer to the sender
     /// @dev MUST emit InitializeOffer event
     /// @param _tokenId The token ID to offer ETH for
-    function initializeOffer(uint256 _tokenId) external payable;
+    function initializeOffer(address _initializer, uint256 _tokenId)
+        external
+        payable;
 
     /// @notice Revert a token offer
     /// @dev MUST emit RevertOffer event

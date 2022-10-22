@@ -95,7 +95,9 @@ interface IPTT {
     /// @notice Initialize a token offer to transfer to the sender
     /// @dev MUST emit InitializeOffer event
     /// @param _tokenId The token ID to offer ETH for
-    function initializeOffer(uint256 _tokenId) external payable;
+    function initializeOffer(address _initializer, uint256 _tokenId)
+        external
+        payable;
 
     /// @notice Revert a token offer
     /// @dev MUST emit RevertOffer event
@@ -203,8 +205,6 @@ contract PTT is IPTT, IERC165 {
     mapping(address => mapping(uint256 => uint256))
         public
         override(IPTT) initializerTokenOffer;
-    mapping(address => mapping(uint256 => uint256))
-        private acceptOfferTimestamp;
     mapping(uint256 => mapping(bytes32 => uint256)) private _processedMap;
     mapping(uint256 => uint256) private _lastProcessed;
     mapping(uint256 => bytes32) private _tokenRootMap;
@@ -229,12 +229,16 @@ contract PTT is IPTT, IERC165 {
         return Merkle.verify(_proof, _tokenRoot(_tokenId), leaf);
     }
 
-    function initializeOffer(uint256 _tokenId) public payable override(IPTT) {
+    function initializeOffer(address _initializer, uint256 _tokenId)
+        public
+        payable
+        override(IPTT)
+    {
         require(transferee[_tokenId] == address(0));
-        initializerTokenOffer[msg.sender][_tokenId] = msg.value;
+        initializerTokenOffer[_initializer][_tokenId] = msg.value;
         emit InitializeOffer(
             ownerOf[_tokenId],
-            msg.sender,
+            _initializer,
             _tokenId,
             msg.value
         );
@@ -258,7 +262,6 @@ contract PTT is IPTT, IERC165 {
             transferee[_tokenId] == address(0) && _from == ownerOf[_tokenId]
         );
         transferee[_tokenId] = _to;
-        acceptOfferTimestamp[_to][_tokenId] = block.timestamp;
         emit AcceptOffer(
             ownerOf[_tokenId],
             _to,
@@ -273,8 +276,6 @@ contract PTT is IPTT, IERC165 {
     {
         require(
             transferee[_tokenId] != address(0) &&
-                (acceptOfferTimestamp[_initializer][_tokenId] + 60000) <
-                block.timestamp &&
                 ownerOf[_tokenId] == msg.sender
         );
         delete transferee[_tokenId];
