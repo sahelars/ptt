@@ -4,7 +4,7 @@ pragma solidity ^0.8.4;
 
 /// @title Physically Transferrable Tokens (PTT)
 interface IPTT {
-    /// @notice Emits when receiving address sends payment for transaction
+    /// @notice Emits when receiving address sends payment for offer
     /// @dev MUST emit in initializeOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
@@ -17,7 +17,7 @@ interface IPTT {
         uint256 _offer
     );
 
-    /// @notice Emits when receiving address reverts transaction
+    /// @notice Emits when receiving address reverts offer
     /// @dev MUST emit in revertOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
@@ -37,6 +37,19 @@ interface IPTT {
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
     event AcceptOffer(
+        address indexed _from,
+        address indexed _to,
+        uint256 indexed _tokenId,
+        uint256 _offer
+    );
+
+    /// @notice Emits when receiving address refunds offer
+    /// @dev MUST emit in refundOffer
+    /// @param _from The address who owns the _tokenId
+    /// @param _to The initializer address
+    /// @param _tokenId The token ID for the offer
+    /// @param _offer The offer amount for the token ID
+    event RefundOffer(
         address indexed _from,
         address indexed _to,
         uint256 indexed _tokenId,
@@ -78,6 +91,12 @@ interface IPTT {
         string memory _code,
         bytes32[] calldata _proof
     ) external;
+
+    /// @notice Refund a token offer
+    /// @dev MUST emit RefundOffer event
+    /// @param _initializer The initializer to receive refund
+    /// @param _tokenId The token ID to refund offer for
+    function refundOffer(address _initializer, uint256 _tokenId) external;
 
     /// @notice Transfers the sends ETH to the _from address
     /// @dev Compatible with ERC-721 and MUST emit Transfer event

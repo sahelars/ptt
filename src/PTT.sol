@@ -80,6 +80,16 @@ contract PTT is IPTT, IERC165 {
         );
     }
 
+    function refundOffer(address _initializer, uint256 _tokenId) public override(IPTT) {
+        require(initializer[_tokenId] != address(0));
+        require(ownerOf[_tokenId] == msg.sender);
+        uint256 amount = initializerTokenOffer[_initializer][_tokenId];
+        delete initializerTokenOffer[_initializer][_tokenId];
+        (bool success, ) = payable(_initializer).call{value: amount}("");
+        require(success, "ETHER_TRANSFER_FAILED");
+        emit RefundOffer(msg.sender, _initializer, _tokenId, amount);
+    }
+
     function transfer(
         address _from,
         address _to,

@@ -25,11 +25,11 @@ The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL 
 
 Each token MUST be controlled by a physical chip. The physical chip SHOULD contain a merkle tree database that MUST chronologically release codes that increase in size. The escrow system MUST ensure old codes cannot be used after the new owner is stored.
 
-**Every ERC-???? compliant contract MUST implement the `ERC` and `ERC165` interfaces (subject to "caveats" below):**
+**Every ERC-???? compliant contract MUST implement the `IPTT` and `ERC165` interfaces (subject to "caveats" below):**
 
 ```solidity
-interface ERC {
-    /// @notice Emits when receiving address sends payment for transaction
+interface IPTT {
+    /// @notice Emits when receiving address sends payment for offer
     /// @dev MUST emit in initializeOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
@@ -42,7 +42,7 @@ interface ERC {
         uint256 _offer
     );
 
-    /// @notice Emits when receiving address reverts transaction
+    /// @notice Emits when receiving address reverts offer
     /// @dev MUST emit in revertOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
@@ -62,6 +62,19 @@ interface ERC {
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
     event AcceptOffer(
+        address indexed _from,
+        address indexed _to,
+        uint256 indexed _tokenId,
+        uint256 _offer
+    );
+
+    /// @notice Emits when receiving address refunds offer
+    /// @dev MUST emit in refundOffer
+    /// @param _from The address who owns the _tokenId
+    /// @param _to The initializer address
+    /// @param _tokenId The token ID for the offer
+    /// @param _offer The offer amount for the token ID
+    event RefundOffer(
         address indexed _from,
         address indexed _to,
         uint256 indexed _tokenId,
@@ -103,6 +116,12 @@ interface ERC {
         string memory _code,
         bytes32[] calldata _proof
     ) external;
+
+    /// @notice Refund a token offer
+    /// @dev MUST emit RefundOffer event
+    /// @param _initializer The initializer to receive refund
+    /// @param _tokenId The token ID to refund offer for
+    function refundOffer(address _initializer, uint256 _tokenId) external;
 
     /// @notice Transfers the sends ETH to the _from address
     /// @dev Compatible with ERC-721 and MUST emit Transfer event
@@ -176,11 +195,11 @@ This proposal is backwards compatible with the Transfer event and ownerOf specs 
 The following is a basic non-optimized implementation of the ERC-????:
 
 ```solidity
-import "./IERC.sol";
+import "./IPTT.sol";
 import "@0xver/solver/library/Merkle.sol";
 import "@0xver/solver/interface/IERC165.sol";
 
-contract ERC is IERC, IERC165 {
+contract PTT is IPTT, IERC165 {
     mapping(uint256 => address) public override(IPTT) ownerOf;
     mapping(uint256 => address) public override(IPTT) initializer;
     mapping(address => mapping(uint256 => uint256))
@@ -250,6 +269,16 @@ contract ERC is IERC, IERC165 {
             _tokenId,
             initializerTokenOffer[_to][_tokenId]
         );
+    }
+
+    function refundOffer(address _initializer, uint256 _tokenId) public override(IPTT) {
+        require(initializer[_tokenId] != address(0));
+        require(ownerOf[_tokenId] == msg.sender);
+        uint256 amount = initializerTokenOffer[_initializer][_tokenId];
+        delete initializerTokenOffer[_initializer][_tokenId];
+        (bool success, ) = payable(_initializer).call{value: amount}("");
+        require(success, "ETHER_TRANSFER_FAILED");
+        emit RefundOffer(msg.sender, _initializer, _tokenId, amount);
     }
 
     function transfer(
