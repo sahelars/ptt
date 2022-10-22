@@ -174,6 +174,8 @@ The `revertOffer` function MUST emit the `RevertOffer` event
 
 The `acceptOffer` function MUST emit the `AcceptOffer` event
 
+The `refundOffer` function MUST emit the `RefundOffer` event
+
 The `transfer` function MUST emit the `Transfer` event
 
 The `initializer` address MUST be set in the `acceptOffer` function
@@ -205,6 +207,8 @@ contract PTT is IPTT, IERC165 {
     mapping(address => mapping(uint256 => uint256))
         public
         override(IPTT) initializerTokenOffer;
+    mapping(address => mapping(uint256 => uint256))
+        private acceptOfferTimestamp;
     mapping(uint256 => mapping(bytes32 => uint256)) private _processedMap;
     mapping(uint256 => uint256) private _lastProcessed;
     mapping(uint256 => bytes32) private _tokenRootMap;
@@ -263,6 +267,7 @@ contract PTT is IPTT, IERC165 {
         );
         _processLeaf(_tokenId, _code, _proof);
         initializer[_tokenId] = _to;
+        acceptOfferTimestamp[_to][_tokenId] = block.timestamp;
         emit AcceptOffer(
             ownerOf[_tokenId],
             _to,
@@ -271,9 +276,17 @@ contract PTT is IPTT, IERC165 {
         );
     }
 
-    function refundOffer(address _initializer, uint256 _tokenId) public override(IPTT) {
-        require(initializer[_tokenId] != address(0));
-        require(ownerOf[_tokenId] == msg.sender);
+    function refundOffer(address _initializer, uint256 _tokenId)
+        public
+        override(IPTT)
+    {
+        require(
+            initializer[_tokenId] != address(0) &&
+                (acceptOfferTimestamp[_initializer][_tokenId] + 60000) <
+                block.timestamp &&
+                ownerOf[_tokenId] == msg.sender
+        );
+        delete initializer[_tokenId];
         uint256 amount = initializerTokenOffer[_initializer][_tokenId];
         delete initializerTokenOffer[_initializer][_tokenId];
         (bool success, ) = payable(_initializer).call{value: amount}("");
@@ -297,6 +310,7 @@ contract PTT is IPTT, IERC165 {
         ownerOf[_tokenId] = _to;
         delete initializer[_tokenId];
         uint256 amount = initializerTokenOffer[_to][_tokenId];
+        delete initializerTokenOffer[_to][_tokenId];
         (bool success, ) = payable(_from).call{value: amount}("");
         require(success, "ETHER_TRANSFER_FAILED");
         emit Transfer(_from, _to, _tokenId);
