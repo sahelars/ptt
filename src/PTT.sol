@@ -26,18 +26,6 @@ contract PTT is IPTT, IERC165 {
         emit Transfer(address(0), msg.sender, _currentTokenId);
     }
 
-    function isValidTransferCode(
-        uint256 _tokenId,
-        string memory _code,
-        bytes32[] calldata _proof
-    ) public view override(IPTT) returns (bool) {
-        if (_numberfy(_code) <= _lastProcessed[_tokenId]) {
-            return false;
-        }
-        bytes32 leaf = keccak256(abi.encodePacked(_code));
-        return Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf);
-    }
-
     function initializeOffer(address _transferee, uint256 _tokenId)
         public
         payable
@@ -104,18 +92,21 @@ contract PTT is IPTT, IERC165 {
     ) public override(IPTT) {
         require(
             _from == ownerOf[_tokenId] &&
-                isValidTransferCode(_tokenId, _code, _proof)
+                _isValidTransferCode(_tokenId, _code, _proof),
+            "TRANSFER_FAILED"
         );
         _processLeaf(_tokenId, _code, _proof);
-        ownerOf[_tokenId] = _to;
-        if (transferee[_tokenId] == _to) {
+        if (transferee[_tokenId] != address(0)) {
+            require(transferee[_tokenId] == _to);
             delete transferee[_tokenId];
             uint256 amount = initializerTokenOffer[_to][_tokenId];
             delete initializerTokenOffer[_to][_tokenId];
             (bool success, ) = payable(_from).call{value: amount}("");
             require(success, "ETHER_TRANSFER_FAILED");
+            ownerOf[_tokenId] = _to;
+            emit Transfer(_from, _to, _tokenId);
         }
-        emit Transfer(_from, _to, _tokenId);
+        
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -160,5 +151,17 @@ contract PTT is IPTT, IERC165 {
                 (uint8(bytes(_code)[i]) - 48) *
                 10**(bytes(_code).length - i - 1);
         }
+    }
+
+    function _isValidTransferCode(
+        uint256 _tokenId,
+        string memory _code,
+        bytes32[] calldata _proof
+    ) private view returns (bool) {
+        if (_numberfy(_code) <= _lastProcessed[_tokenId]) {
+            return false;
+        }
+        bytes32 leaf = keccak256(abi.encodePacked(_code));
+        return Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf);
     }
 }

@@ -112,16 +112,6 @@ interface IPTT {
         bytes32[] calldata _proof
     ) external;
 
-    /// @notice Returns true if the transfer code is valid
-    /// @param _tokenId The token ID for the transfer code
-    /// @param _code The code used to transfer the token
-    /// @param _proof The merkle proof for the code
-    function isValidTransferCode(
-        uint256 _tokenId,
-        string memory _code,
-        bytes32[] calldata _proof
-    ) external view returns (bool);
-
     /// @notice The owner of a token
     /// @dev Compatible with ERC-721 and MUST be set during transfer
     /// @param _tokenId The owner token ID

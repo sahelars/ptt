@@ -33,21 +33,12 @@ describe(`${contract} contract test`, function () {
     await Token.connect(addrs[1]).initializeOffer(addrs[1].address, 1, {
       value: String(21000),
     });
-    expect(
-      await Token.isValidTransferCode(1, "1", proof(database, "1"))
-    ).to.equal(true);
     expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
     await Token.connect(addrs[0]).acceptOffer(
       addrs[0].address,
       addrs[1].address,
       1
     );
-    expect(
-      await Token.isValidTransferCode(1, "1", proof(database, "1"))
-    ).to.equal(true);
-    expect(
-      await Token.isValidTransferCode(1, "2", proof(database, "2"))
-    ).to.equal(true);
     expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
     await Token.connect(addrs[1]).transfer(
       addrs[0].address,
@@ -56,12 +47,15 @@ describe(`${contract} contract test`, function () {
       "1",
       proof(database, "1")
     );
-    expect(
-      await Token.isValidTransferCode(1, "1", proof(database, "1"))
-    ).to.equal(false);
-    expect(
-      await Token.isValidTransferCode(1, "2", proof(database, "2"))
-    ).to.equal(true);
+    await expect(
+      Token.connect(addrs[1]).transfer(
+        addrs[0].address,
+        addrs[1].address,
+        1,
+        "1",
+        proof(database, "1")
+      )
+    ).to.be.revertedWith("TRANSFER_FAILED");
     expect(await Token.ownerOf(1)).to.equal(addrs[1].address);
   });
 });
