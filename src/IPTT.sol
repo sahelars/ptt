@@ -30,7 +30,7 @@ interface IPTT {
         uint256 _offer
     );
 
-    /// @notice Emits when owner accepts offer and gives initializer PTT
+    /// @notice Emits when owner accepts offer and gives transferee item
     /// @dev MUST emit in acceptOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
@@ -69,9 +69,9 @@ interface IPTT {
 
     /// @notice Initialize a token offer to transfer to the sender
     /// @dev MUST emit InitializeOffer event
-    /// @param _initializer The potential transferee of the offer
+    /// @param _transferee The potential transferee of the offer
     /// @param _tokenId The token ID to offer ETH for
-    function initializeOffer(address _initializer, uint256 _tokenId)
+    function initializeOffer(address _transferee, uint256 _tokenId)
         external
         payable;
 
@@ -93,9 +93,9 @@ interface IPTT {
 
     /// @notice Refund a token offer
     /// @dev MUST emit RefundOffer event
-    /// @param _initializer The initializer to receive refund
+    /// @param _transferee The initializer to receive refund
     /// @param _tokenId The token ID to refund offer for
-    function refundOffer(address _initializer, uint256 _tokenId) external;
+    function refundOffer(address _transferee, uint256 _tokenId) external;
 
     /// @notice Transfers the sends ETH to the _from address
     /// @dev Compatible with ERC-721 and MUST emit Transfer event
@@ -127,15 +127,15 @@ interface IPTT {
     /// @param _tokenId The owner token ID
     function ownerOf(uint256 _tokenId) external view returns (address);
 
-    /// @notice Initalized receiver for after Accept is emitted
-    /// @dev The transferee is initializer after offer is accepted
+    /// @notice Transferee for the token offer
+    /// @dev The transferee is initializer after the offer is accepted
     /// @param _tokenId The token ID for the initializer
     function transferee(uint256 _tokenId) external view returns (address);
 
     /// @notice The offer amount for a token ID from an initializer
-    /// @param _initializer The initializer of the offer
+    /// @param _transferee The initialized transferee of the offer
     /// @param _tokenId The token ID for the initializer
-    function initializerTokenOffer(address _initializer, uint256 _tokenId)
+    function initializerTokenOffer(address _transferee, uint256 _tokenId)
         external
         view
         returns (uint256);
