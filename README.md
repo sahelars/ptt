@@ -25,7 +25,7 @@ The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL 
 
 Each token MUST be controlled by a physical chip. The physical chip SHOULD contain a merkle tree database that MUST chronologically release codes that increase in size. The escrow system MUST ensure old codes cannot be used after the new owner is stored.
 
-**Every ERC-???? compliant contract MUST implement the `IPTT` and `ERC165` interfaces (subject to "caveats" below):**
+**Every PTT compliant contract MUST implement the `IPTT` and `ERC165` interfaces (subject to "caveats" below):**
 
 ```solidity
 interface IPTT {
@@ -137,16 +137,6 @@ interface IPTT {
         bytes32[] calldata _proof
     ) external;
 
-    /// @notice Returns true if the transfer code is valid
-    /// @param _tokenId The token ID for the transfer code
-    /// @param _code The code used to transfer the token
-    /// @param _proof The merkle proof for the code
-    function isValidTransferCode(
-        uint256 _tokenId,
-        string memory _code,
-        bytes32[] calldata _proof
-    ) external view returns (bool);
-
     /// @notice The owner of a token
     /// @dev Compatible with ERC-721 and MUST be set during transfer
     /// @param _tokenId The owner token ID
@@ -193,7 +183,7 @@ This proposal is backwards compatible with the Transfer event and ownerOf specs 
 
 ## Reference Implementation
 
-The following is a basic non-optimized implementation of the ERC-????:
+The following is a basic non-optimized implementation of `IPTT`:
 
 ```solidity
 import "./IPTT.sol";
@@ -216,18 +206,6 @@ contract PTT is IPTT, IERC165 {
         ownerOf[_currentTokenId] = msg.sender;
         _tokenRootMap[_currentTokenId] = _root;
         emit Transfer(address(0), msg.sender, _currentTokenId);
-    }
-
-    function isValidTransferCode(
-        uint256 _tokenId,
-        string memory _code,
-        bytes32[] calldata _proof
-    ) public view override(IPTT) returns (bool) {
-        if (_numberfy(_code) <= _lastProcessed[_tokenId]) {
-            return false;
-        }
-        bytes32 leaf = keccak256(abi.encodePacked(_code));
-        return Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf);
     }
 
     function initializeOffer(address _transferee, uint256 _tokenId)
@@ -296,18 +274,21 @@ contract PTT is IPTT, IERC165 {
     ) public override(IPTT) {
         require(
             _from == ownerOf[_tokenId] &&
-                isValidTransferCode(_tokenId, _code, _proof)
+                _isValidTransferCode(_tokenId, _code, _proof),
+            "TRANSFER_FAILED"
         );
         _processLeaf(_tokenId, _code, _proof);
-        ownerOf[_tokenId] = _to;
-        if (transferee[_tokenId] == _to) {
+        if (transferee[_tokenId] != address(0)) {
+            require(transferee[_tokenId] == _to);
             delete transferee[_tokenId];
             uint256 amount = initializerTokenOffer[_to][_tokenId];
             delete initializerTokenOffer[_to][_tokenId];
             (bool success, ) = payable(_from).call{value: amount}("");
             require(success, "ETHER_TRANSFER_FAILED");
+            ownerOf[_tokenId] = _to;
+            emit Transfer(_from, _to, _tokenId);
         }
-        emit Transfer(_from, _to, _tokenId);
+        
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -352,6 +333,18 @@ contract PTT is IPTT, IERC165 {
                 (uint8(bytes(_code)[i]) - 48) *
                 10**(bytes(_code).length - i - 1);
         }
+    }
+
+    function _isValidTransferCode(
+        uint256 _tokenId,
+        string memory _code,
+        bytes32[] calldata _proof
+    ) private view returns (bool) {
+        if (_numberfy(_code) <= _lastProcessed[_tokenId]) {
+            return false;
+        }
+        bytes32 leaf = keccak256(abi.encodePacked(_code));
+        return Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf);
     }
 }
 ```
