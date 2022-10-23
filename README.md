@@ -223,7 +223,7 @@ contract PTT is IPTT, IERC165 {
         string memory _code,
         bytes32[] calldata _proof
     ) public view override(IPTT) returns (bool) {
-        if (Strings.numbify(_code) <= _lastProcessed[_tokenId]) {
+        if (_numberfy(_code) <= _lastProcessed[_tokenId]) {
             return false;
         }
         bytes32 leaf = keccak256(abi.encodePacked(_code));
@@ -332,31 +332,26 @@ contract PTT is IPTT, IERC165 {
             Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf),
             "INVALID_PROOF"
         );
-        uint128 num = uint128(Strings.numbify(_code));
-        _processedMap[_tokenId][leaf] = num;
-        _lastProcessed[_tokenId] = num;
+        _processedMap[_tokenId][leaf] = _numberfy(_code);
+        _lastProcessed[_tokenId] = _numberfy(_code);
     }
-}
 
-library Strings {
-    function numbify(string memory _string)
+    function _numberfy(string memory _code)
         internal
         pure
         returns (uint256 number)
     {
-        for (uint256 i = 0; i < bytes(_string).length; i++) {
+        for (uint256 i = 0; i < bytes(_code).length; i++) {
             if (
-                (uint8(bytes(_string)[i]) - 48) < 0 ||
-                (uint8(bytes(_string)[i]) - 48) > 9
+                (uint8(bytes(_code)[i]) - 48) < 0 ||
+                (uint8(bytes(_code)[i]) - 48) > 9
             ) {
                 return 0;
             }
             number +=
-                (uint8(bytes(_string)[i]) - 48) *
-                10**(bytes(_string).length - i - 1);
+                (uint8(bytes(_code)[i]) - 48) *
+                10**(bytes(_code).length - i - 1);
         }
-
-        return number;
     }
 }
 ```
