@@ -121,20 +121,6 @@ contract PTT is IPTT, IERC165 {
             interfaceId == type(IPTT).interfaceId;
     }
 
-    function _processLeaf(
-        uint256 _tokenId,
-        string memory _code,
-        bytes32[] calldata _proof
-    ) internal {
-        bytes32 leaf = keccak256(abi.encodePacked(_code));
-        require(
-            Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf),
-            "INVALID_PROOF"
-        );
-        _processedMap[_tokenId][leaf] = _numberfy(_code);
-        _lastProcessed[_tokenId] = _numberfy(_code);
-    }
-
     function _numberfy(string memory _code)
         internal
         pure
@@ -151,6 +137,20 @@ contract PTT is IPTT, IERC165 {
                 (uint8(bytes(_code)[i]) - 48) *
                 10**(bytes(_code).length - i - 1);
         }
+    }
+
+    function _processLeaf(
+        uint256 _tokenId,
+        string memory _code,
+        bytes32[] calldata _proof
+    ) private {
+        bytes32 leaf = keccak256(abi.encodePacked(_code));
+        require(
+            Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf),
+            "INVALID_PROOF"
+        );
+        _processedMap[_tokenId][leaf] = _numberfy(_code);
+        _lastProcessed[_tokenId] = _numberfy(_code);
     }
 
     function _isValidTransferCode(
