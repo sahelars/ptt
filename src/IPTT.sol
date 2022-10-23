@@ -123,7 +123,7 @@ interface IPTT {
     ) external view returns (bool);
 
     /// @notice The owner of a token
-    /// @dev Compatible with ERC-721 and should be set after transfer
+    /// @dev Compatible with ERC-721 and MUST be set during transfer
     /// @param _tokenId The owner token ID
     function ownerOf(uint256 _tokenId) external view returns (address);
 
