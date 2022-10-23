@@ -55,7 +55,7 @@ interface IPTT {
         uint256 _offer
     );
 
-    /// @notice Emits when owner accepts offer and gives initializer PTT
+    /// @notice Emits when owner accepts offer and gives transferee item
     /// @dev MUST emit in acceptOffer
     /// @param _from The address who owns the _tokenId
     /// @param _to The initializer address
@@ -94,9 +94,9 @@ interface IPTT {
 
     /// @notice Initialize a token offer to transfer to the sender
     /// @dev MUST emit InitializeOffer event
-    /// @param _initializer The potential transferee of the offer
+    /// @param _transferee The potential transferee of the offer
     /// @param _tokenId The token ID to offer ETH for
-    function initializeOffer(address _initializer, uint256 _tokenId)
+    function initializeOffer(address _transferee, uint256 _tokenId)
         external
         payable;
 
@@ -118,9 +118,9 @@ interface IPTT {
 
     /// @notice Refund a token offer
     /// @dev MUST emit RefundOffer event
-    /// @param _initializer The initializer to receive refund
+    /// @param _transferee The initializer to receive refund
     /// @param _tokenId The token ID to refund offer for
-    function refundOffer(address _initializer, uint256 _tokenId) external;
+    function refundOffer(address _transferee, uint256 _tokenId) external;
 
     /// @notice Transfers the sends ETH to the _from address
     /// @dev Compatible with ERC-721 and MUST emit Transfer event
@@ -152,15 +152,15 @@ interface IPTT {
     /// @param _tokenId The owner token ID
     function ownerOf(uint256 _tokenId) external view returns (address);
 
-    /// @notice Initalized receiver for after Accept is emitted
-    /// @dev The transferee is initializer after offer is accepted
+    /// @notice Transferee for the token offer
+    /// @dev The transferee is initializer after the offer is accepted
     /// @param _tokenId The token ID for the initializer
     function transferee(uint256 _tokenId) external view returns (address);
 
     /// @notice The offer amount for a token ID from an initializer
-    /// @param _initializer The initializer of the offer
+    /// @param _transferee The initialized transferee of the offer
     /// @param _tokenId The token ID for the initializer
-    function initializerTokenOffer(address _initializer, uint256 _tokenId)
+    function initializerTokenOffer(address _transferee, uint256 _tokenId)
         external
         view
         returns (uint256);
@@ -177,7 +177,7 @@ The `refundOffer` function MUST emit the `RefundOffer` event
 
 The `transfer` function MUST emit the `Transfer` event
 
-The `initializer` address MUST be set in the `acceptOffer` function
+The `transferee` address MUST be set in the `acceptOffer` function
 
 The `ownerOf` address MUST be set in the `transfer` function
 
@@ -230,16 +230,16 @@ contract PTT is IPTT, IERC165 {
         return Merkle.verify(_proof, _tokenRoot(_tokenId), leaf);
     }
 
-    function initializeOffer(address _initializer, uint256 _tokenId)
+    function initializeOffer(address _transferee, uint256 _tokenId)
         public
         payable
         override(IPTT)
     {
         require(transferee[_tokenId] == address(0));
-        initializerTokenOffer[_initializer][_tokenId] = msg.value;
+        initializerTokenOffer[_transferee][_tokenId] = msg.value;
         emit InitializeOffer(
             ownerOf[_tokenId],
-            _initializer,
+            _transferee,
             _tokenId,
             msg.value
         );
@@ -271,7 +271,7 @@ contract PTT is IPTT, IERC165 {
         );
     }
 
-    function refundOffer(address _initializer, uint256 _tokenId)
+    function refundOffer(address _transferee, uint256 _tokenId)
         public
         override(IPTT)
     {
@@ -280,11 +280,11 @@ contract PTT is IPTT, IERC165 {
                 ownerOf[_tokenId] == msg.sender
         );
         delete transferee[_tokenId];
-        uint256 amount = initializerTokenOffer[_initializer][_tokenId];
-        delete initializerTokenOffer[_initializer][_tokenId];
-        (bool success, ) = payable(_initializer).call{value: amount}("");
+        uint256 amount = initializerTokenOffer[_transferee][_tokenId];
+        delete initializerTokenOffer[_transferee][_tokenId];
+        (bool success, ) = payable(_transferee).call{value: amount}("");
         require(success, "ETHER_TRANSFER_FAILED");
-        emit RefundOffer(msg.sender, _initializer, _tokenId, amount);
+        emit RefundOffer(msg.sender, _transferee, _tokenId, amount);
     }
 
     function transfer(
@@ -296,16 +296,17 @@ contract PTT is IPTT, IERC165 {
     ) public override(IPTT) {
         require(
             _from == ownerOf[_tokenId] &&
-                _to == transferee[_tokenId] &&
                 isValidTransferCode(_tokenId, _code, _proof)
         );
         _processLeaf(_tokenId, _code, _proof);
         ownerOf[_tokenId] = _to;
-        delete transferee[_tokenId];
-        uint256 amount = initializerTokenOffer[_to][_tokenId];
-        delete initializerTokenOffer[_to][_tokenId];
-        (bool success, ) = payable(_from).call{value: amount}("");
-        require(success, "ETHER_TRANSFER_FAILED");
+        if (transferee[_tokenId] == _to) {
+            delete transferee[_tokenId];
+            uint256 amount = initializerTokenOffer[_to][_tokenId];
+            delete initializerTokenOffer[_to][_tokenId];
+            (bool success, ) = payable(_from).call{value: amount}("");
+            require(success, "ETHER_TRANSFER_FAILED");
+        }
         emit Transfer(_from, _to, _tokenId);
     }
 
