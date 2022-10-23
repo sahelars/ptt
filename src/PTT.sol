@@ -22,7 +22,7 @@ contract PTT is IPTT, IERC165 {
     function mint(bytes32 _root) public {
         _currentTokenId += 1;
         ownerOf[_currentTokenId] = msg.sender;
-        _setTokenRoot(_currentTokenId, _root);
+        _tokenRootMap[_currentTokenId] = _root;
         emit Transfer(address(0), msg.sender, _currentTokenId);
     }
 
@@ -35,7 +35,7 @@ contract PTT is IPTT, IERC165 {
             return false;
         }
         bytes32 leaf = keccak256(abi.encodePacked(_code));
-        return Merkle.verify(_proof, _tokenRoot(_tokenId), leaf);
+        return Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf);
     }
 
     function initializeOffer(address _transferee, uint256 _tokenId)
@@ -130,14 +130,6 @@ contract PTT is IPTT, IERC165 {
             interfaceId == type(IPTT).interfaceId;
     }
 
-    function _setTokenRoot(uint256 _tokenId, bytes32 _root) internal {
-        _tokenRootMap[_tokenId] = _root;
-    }
-
-    function _tokenRoot(uint256 _tokenId) internal view returns (bytes32) {
-        return _tokenRootMap[_tokenId];
-    }
-
     function _processLeaf(
         uint256 _tokenId,
         string memory _code,
@@ -145,7 +137,7 @@ contract PTT is IPTT, IERC165 {
     ) internal {
         bytes32 leaf = keccak256(abi.encodePacked(_code));
         require(
-            Merkle.verify(_proof, _tokenRoot(_tokenId), leaf),
+            Merkle.verify(_proof, _tokenRootMap[_tokenId], leaf),
             "INVALID_PROOF"
         );
         uint128 num = uint128(Strings.numbify(_code));
