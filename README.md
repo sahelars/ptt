@@ -285,10 +285,9 @@ contract PTT is IPTT, IERC165 {
             delete initializerTokenOffer[_to][_tokenId];
             (bool success, ) = payable(_from).call{value: amount}("");
             require(success, "ETHER_TRANSFER_FAILED");
-            ownerOf[_tokenId] = _to;
-            emit Transfer(_from, _to, _tokenId);
         }
-        
+        ownerOf[_tokenId] = _to;
+        emit Transfer(_from, _to, _tokenId);
     }
 
     function supportsInterface(bytes4 interfaceId)
