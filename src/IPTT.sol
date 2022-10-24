@@ -7,7 +7,7 @@ interface IPTT {
     /// @notice Emits when receiving address sends payment for offer
     /// @dev MUST emit in initializeOffer
     /// @param _from The address who owns the _tokenId
-    /// @param _to The initializer address
+    /// @param _to The transferee address
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
     event InitializeOffer(
@@ -20,7 +20,7 @@ interface IPTT {
     /// @notice Emits when receiving address reverts offer
     /// @dev MUST emit in revertOffer
     /// @param _from The address who owns the _tokenId
-    /// @param _to The initializer address
+    /// @param _to The transferee address
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
     event RevertOffer(
@@ -33,7 +33,7 @@ interface IPTT {
     /// @notice Emits when owner accepts offer and gives transferee item
     /// @dev MUST emit in acceptOffer
     /// @param _from The address who owns the _tokenId
-    /// @param _to The initializer address
+    /// @param _to The transferee address
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
     event AcceptOffer(
@@ -46,7 +46,7 @@ interface IPTT {
     /// @notice Emits when receiving address refunds offer
     /// @dev MUST emit in refundOffer
     /// @param _from The address who owns the _tokenId
-    /// @param _to The initializer address
+    /// @param _to The transferee address
     /// @param _tokenId The token ID for the offer
     /// @param _offer The offer amount for the token ID
     event RefundOffer(
@@ -56,10 +56,10 @@ interface IPTT {
         uint256 _offer
     );
 
-    /// @notice Emits when initializer confirms their transfer
+    /// @notice Emits when transferee confirms their transfer
     /// @dev Compatible with ERC-721 and MUST emit with transfer
     /// @param _from The address who owns the _tokenId
-    /// @param _to The initializer address
+    /// @param _to The transferee address
     /// @param _tokenId The token ID for the offer
     event Transfer(
         address indexed _from,
@@ -67,7 +67,7 @@ interface IPTT {
         uint256 indexed _tokenId
     );
 
-    /// @notice Initialize a token offer to transfer to the sender
+    /// @notice Initialize a token offer for transferee
     /// @dev MUST emit InitializeOffer event
     /// @param _transferee The potential transferee of the offer
     /// @param _tokenId The token ID to offer ETH for
@@ -93,7 +93,7 @@ interface IPTT {
 
     /// @notice Refund a token offer
     /// @dev MUST emit RefundOffer event
-    /// @param _transferee The initializer to receive refund
+    /// @param _transferee The transferee to receive refund
     /// @param _tokenId The token ID to refund offer for
     function refundOffer(address _transferee, uint256 _tokenId) external;
 
@@ -113,19 +113,20 @@ interface IPTT {
     ) external;
 
     /// @notice The owner of a token
-    /// @dev Compatible with ERC-721 and MUST be set during transfer
+    /// @dev Compatible with ERC-721 and MUST be set when Transfer emits
     /// @param _tokenId The owner token ID
     function ownerOf(uint256 _tokenId) external view returns (address);
 
     /// @notice Transferee for the token offer
-    /// @dev The transferee is initializer after the offer is accepted
-    /// @param _tokenId The token ID for the initializer
+    /// @dev The transferee MUST be set when AcceptOffer emits
+    /// @param _tokenId The token ID to the transferee
     function transferee(uint256 _tokenId) external view returns (address);
 
-    /// @notice The offer amount for a token ID from an initializer
-    /// @param _transferee The initialized transferee of the offer
-    /// @param _tokenId The token ID for the initializer
-    function initializerTokenOffer(address _transferee, uint256 _tokenId)
+    /// @notice The offer amount for a token ID for transferee
+    /// @dev The offer MUST be set when InitializeOffer emits
+    /// @param _transferee The transferee for the offer
+    /// @param _tokenId The token ID for the offer
+    function offer(address _transferee, uint256 _tokenId)
         external
         view
         returns (uint256);

@@ -13,7 +13,7 @@ contract PTT is IPTT, IERC165 {
     mapping(uint256 => address) public override(IPTT) transferee;
     mapping(address => mapping(uint256 => uint256))
         public
-        override(IPTT) initializerTokenOffer;
+        override(IPTT) offer;
     mapping(uint256 => mapping(bytes32 => uint256)) private _processedMap;
     mapping(uint256 => uint256) private _lastProcessed;
     mapping(uint256 => bytes32) private _tokenRootMap;
@@ -32,7 +32,7 @@ contract PTT is IPTT, IERC165 {
         override(IPTT)
     {
         require(transferee[_tokenId] == address(0));
-        initializerTokenOffer[_transferee][_tokenId] = msg.value;
+        offer[_transferee][_tokenId] = msg.value;
         emit InitializeOffer(
             ownerOf[_tokenId],
             _transferee,
@@ -43,8 +43,8 @@ contract PTT is IPTT, IERC165 {
 
     function revertOffer(uint256 _tokenId) public override(IPTT) {
         require(transferee[_tokenId] == address(0));
-        uint256 amount = initializerTokenOffer[msg.sender][_tokenId];
-        delete initializerTokenOffer[msg.sender][_tokenId];
+        uint256 amount = offer[msg.sender][_tokenId];
+        delete offer[msg.sender][_tokenId];
         (bool success, ) = payable(msg.sender).call{value: amount}("");
         require(success, "ETHER_TRANSFER_FAILED");
         emit RevertOffer(ownerOf[_tokenId], msg.sender, _tokenId, amount);
@@ -63,7 +63,7 @@ contract PTT is IPTT, IERC165 {
             ownerOf[_tokenId],
             _to,
             _tokenId,
-            initializerTokenOffer[_to][_tokenId]
+            offer[_to][_tokenId]
         );
     }
 
@@ -76,8 +76,8 @@ contract PTT is IPTT, IERC165 {
                 ownerOf[_tokenId] == msg.sender
         );
         delete transferee[_tokenId];
-        uint256 amount = initializerTokenOffer[_transferee][_tokenId];
-        delete initializerTokenOffer[_transferee][_tokenId];
+        uint256 amount = offer[_transferee][_tokenId];
+        delete offer[_transferee][_tokenId];
         (bool success, ) = payable(_transferee).call{value: amount}("");
         require(success, "ETHER_TRANSFER_FAILED");
         emit RefundOffer(msg.sender, _transferee, _tokenId, amount);
@@ -99,8 +99,8 @@ contract PTT is IPTT, IERC165 {
         if (transferee[_tokenId] != address(0)) {
             require(transferee[_tokenId] == _to);
             delete transferee[_tokenId];
-            uint256 amount = initializerTokenOffer[_to][_tokenId];
-            delete initializerTokenOffer[_to][_tokenId];
+            uint256 amount = offer[_to][_tokenId];
+            delete offer[_to][_tokenId];
             (bool success, ) = payable(_from).call{value: amount}("");
             require(success, "ETHER_TRANSFER_FAILED");
         }
