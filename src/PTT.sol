@@ -54,7 +54,9 @@ contract PTT is IPTT, IERC165 {
         uint256 _tokenId
     ) public override(IPTT) {
         require(
-            transferee[_tokenId] == address(0) && _from == ownerOf[_tokenId]
+            transferee[_tokenId] == address(0) &&
+                _from == ownerOf[_tokenId] &&
+                msg.sender == ownerOf[_tokenId]
         );
         transferee[_tokenId] = _to;
         emit AcceptOffer(
