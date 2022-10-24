@@ -194,15 +194,13 @@ import "@0xver/solver/interface/IERC165.sol";
 contract PTT is IPTT, IERC165 {
     mapping(uint256 => address) public override(IPTT) ownerOf;
     mapping(uint256 => address) public override(IPTT) transferee;
-    mapping(address => mapping(uint256 => uint256))
-        public
-        override(IPTT) offer;
+    mapping(address => mapping(uint256 => uint256)) public override(IPTT) offer;
     mapping(uint256 => mapping(bytes32 => uint256)) private _processedMap;
     mapping(uint256 => uint256) private _lastProcessed;
     mapping(uint256 => bytes32) private _tokenRootMap;
     uint256 private _currentTokenId;
 
-    function mint(bytes32 _root) public {
+    constructor(bytes32 _root) {
         _currentTokenId += 1;
         ownerOf[_currentTokenId] = msg.sender;
         _tokenRootMap[_currentTokenId] = _root;
