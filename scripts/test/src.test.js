@@ -27,8 +27,7 @@ function proof(database, code) {
 describe(`${contract} contract test`, function () {
   it("Passed", async function () {
     const addrs = await signers(2);
-    const Token = await deployer(contract, addrs[0]);
-    await Token.connect(addrs[0]).mint(merkle(database)[1]);
+    const Token = await deployer(contract, merkle(database)[1], addrs[0]);
     expect(await Token.ownerOf(1)).to.equal(addrs[0].address);
     await Token.connect(addrs[1]).initializeOffer(addrs[1].address, 1, {
       value: String(21000),
