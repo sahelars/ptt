@@ -1,4 +1,8 @@
-module.exports = async function deployer(name, signer = null) {
+module.exports = async function deployer(
+  name,
+  constructor = null,
+  signer = null
+) {
   const contract = name;
   var deployer;
   if (signer === null) {
@@ -8,7 +12,12 @@ module.exports = async function deployer(name, signer = null) {
   }
   console.log(`${contract} deployer : ${deployer.address} (EOA)`);
   const token = await ethers.getContractFactory(contract);
-  const Token = await token.connect(deployer).deploy();
+  var Token;
+  if (constructor === null) {
+    Token = await token.connect(deployer).deploy();
+  } else {
+    Token = await token.connect(deployer).deploy(constructor);
+  }
   console.log(`${contract} deployed : ${Token.address} (Contract)`);
   return Token;
 };
