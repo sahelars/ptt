@@ -3,7 +3,7 @@ eip: <to be assigned>
 title: Physically Transferrable Token
 description: Interface for using physical chips to control tokens and provide escrow for their exchange
 author: Sam Larsen (sam@slarsen.io)
-discussions-to: CryptoDevs (Discord)
+discussions-to: https://ethereum-magicians.org/t/eip-physically-transferrable-token/11416
 status: Idea
 type: Standards Track
 category: ERC
